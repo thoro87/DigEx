@@ -7,7 +7,13 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/Scenes/menu.unity
+    guid: 92bf7420b4fe3084ba37403e77e97c48
   - enabled: 1
     path: Assets/Scenes/video.unity
+    guid: feb969b5ceeb84044a0db5f455a8e92c
   - enabled: 1
     path: Assets/Scenes/wall.unity
+    guid: 22cdf9d348b27c14b8304343cd59c604
+  - enabled: 1
+    path: Assets/Scenes/surveillance.unity
+    guid: c18a4f996adbf63489dae846105b958e
