@@ -15,7 +15,7 @@ public class WallBuilder : MonoBehaviour {
 	}
 
 	public void SpawnStone() {
-		GameObject go = Instantiate (SimpleStone, NextTarget, Quaternion.identity, transform) as GameObject;
+		Instantiate (SimpleStone, NextTarget, Quaternion.identity, transform);
 	}
 
 	public void SetNextTarget() {
