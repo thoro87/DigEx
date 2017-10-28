@@ -1,0 +1,183 @@
+﻿$(document).ready(init);
+
+var mainModel;
+
+function init() {
+    mainModel = {};
+    mainModel.isInitialized = ko.observable(false);
+    mainModel.users = ko.observable([]);
+    mainModel.userID = ko.observable(null);
+    mainModel.hasManualHoldings = ko.observable(false);
+    mainModel.showClosedTrades = ko.observable(false);
+    mainModel.showZeroHoldings = ko.observable(false);
+    mainModel.buys = ko.observableArray([]);
+    mainModel.coins = ko.observable({});
+    mainModel.wallets = ko.observable({});
+    mainModel.transfers = ko.observable([]);
+    mainModel.trades = ko.observable([]);
+    mainModel.holdings = ko.observable([]);
+    mainModel.creations = ko.observable([]);
+
+    mainModel.calculatedHoldings = ko.pureComputed(function () {
+        var calculatedHoldings = [];
+        for (var prop in mainModel.wallets()) {
+            var wallet = mainModel.wallets()[prop];
+            var walletBuys = Enumerable.From(mainModel.buys()).Where(function (b) {
+                return b.WalletID === wallet.ID;
+            }).ToArray();
+            var walletTransfers = Enumerable.From(mainModel.transfers()).Where(function (t) {
+                return t.WalletFromID === wallet.ID || t.WalletToID === wallet.ID;
+            }).ToArray();
+            var walletTrades = Enumerable.From(mainModel.trades()).Where(function (t) {
+                return t.WalletID === wallet.ID;
+            }).ToArray();
+
+            var coinIDsBuys = Enumerable.From(walletBuys).Select(function (b) { return b.CoinID; });
+            var coinIDsTransers = Enumerable.From(walletTransfers).Select(function (t) { return t.CoinID; });
+            var coinIDsTradeFrom = Enumerable.From(walletTrades).Select(function (t) { return t.CoinFromID; });
+            var coinIDsTradeTo = Enumerable.From(walletTrades).Select(function (t) { return t.CoinToID; });
+            var coinIDs = coinIDsBuys.Union(coinIDsTransers)
+                .Union(coinIDsTradeFrom)
+                .Union(coinIDsTradeTo)
+                .Distinct()
+                .ToArray();
+
+            for (var i = 0; i < coinIDs.length; i++) {
+                var coinID = coinIDs[i];
+                var coinBuys = Enumerable.From(walletBuys).Where(function (b) {
+                    return b.CoinID === coinID;
+                }).Select(function (b) { return b.AmountAfterFee; }).Sum();
+                var coinTransferFrom = Enumerable.From(walletTransfers).Where(function (t) {
+                    return t.CoinID === coinID && t.WalletFromID === wallet.ID;
+                }).Select(function (t) { return t.AmountSent; }).Sum();
+                var coinTransferTo = Enumerable.From(walletTransfers).Where(function (t) {
+                    return t.CoinID === coinID && t.WalletToID === wallet.ID;
+                }).Select(function (t) { return t.AmountReceived; }).Sum();
+                var coinTradeFrom = Enumerable.From(walletTrades).Where(function (t) {
+                    return t.CoinFromID === coinID;
+                }).Select(function (t) { return t.CoinFromAmount; }).Sum();
+                var coinTradeTo = Enumerable.From(walletTrades).Where(function (t) {
+                    return t.CoinToID === coinID;
+                }).Select(function (t) { return t.CoinToAmount; }).Sum();
+
+                var holding = {};
+                holding.wallet = wallet;
+                holding.coin = mainModel.coins()[coinID];
+                holding.amount = coinBuys - coinTransferFrom + coinTransferTo - coinTradeFrom + coinTradeTo;
+                calculatedHoldings.push(holding);
+            }
+
+        }
+        return calculatedHoldings;
+    });
+
+    mainModel.coinValues = ko.observable(null);
+    mainModel.getCoinValues= function () {
+        beginGetCoinValues();
+    };
+
+    mainModel.totalBuysBTC = ko.pureComputed(function () {
+        return mainModel.buys() != null ? Enumerable.From(mainModel.buys()).Select(function (b) {
+            return b.Amount;
+        }).Sum() : 0;
+    });
+    mainModel.totalBuysEUR = ko.pureComputed(function () {
+        return mainModel.buys() != null ? Enumerable.From(mainModel.buys()).Select(function (b) {
+            return b.Amount * b.PriceEUR;
+        }).Sum() : 0;
+    });
+    mainModel.totalHoldingsBTC = ko.pureComputed(function () {
+        if (mainModel.coinValues() == null) {
+            return 0;
+        } else if (!mainModel.hasManualHoldings()) {
+            return Enumerable.From(mainModel.calculatedHoldings()).Select(function (h) {
+                return h.amount * mainModel.coinValues()[h.coin.ID].Price_btc;
+            }).Sum();
+        } else {
+            return Enumerable.From(mainModel.holdings()).Select(function (h) {
+                return h.Amount * mainModel.coinValues()[h.CoinID].Price_btc;
+            }).Sum();
+        }
+    });
+    mainModel.totalHoldingsEUR = ko.pureComputed(function () {
+        if (mainModel.coinValues() == null) {
+            return 0;
+        } else if (!mainModel.hasManualHoldings()) {
+            return Enumerable.From(mainModel.calculatedHoldings()).Select(function (h) {
+                return h.amount * mainModel.coinValues()[h.coin.ID].Price_eur;
+            }).Sum();
+        } else {
+            return Enumerable.From(mainModel.holdings()).Select(function (h) {
+                return h.Amount * mainModel.coinValues()[h.CoinID].Price_eur;
+            }).Sum();
+        }
+    });
+    mainModel.totalProfitBTC = ko.pureComputed(function () {
+        return mainModel.totalHoldingsBTC() - mainModel.totalBuysBTC();
+    });
+    mainModel.totalProfitEUR = ko.pureComputed(function () {
+        return mainModel.totalHoldingsEUR() - mainModel.totalBuysEUR();
+    });
+    mainModel.totalCreationsBTC = ko.pureComputed(function () {
+        if (mainModel.coinValues() == null) {
+            return 0;
+        } else {
+            return Enumerable.From(mainModel.creations()).Select(function (c) {
+                return
+                c.Amount * mainModel.coinValues()[c.CoinID].Price_btc;
+            }).Sum();
+        }
+    });
+    mainModel.totalCreationsEUR = ko.pureComputed(function () {
+        if (mainModel.coinValues() == null) {
+            return 0;
+        } else {
+            return Enumerable.From(mainModel.creations()).Select(function (c) {
+                return c.Amount * mainModel.coinValues()[c.CoinID].Price_eur;
+            }).Sum();
+        }
+    });
+
+    ko.applyBindings(mainModel);
+    mainModel.userID.subscribe(function (newValue) {
+        if (mainModel.isInitialized()) {
+            beginGetData();
+        }
+    });
+
+    beginGetData();
+    beginGetCoinValues();
+}
+
+function beginGetData() {
+   xhr.callService(endGetData, "Home", "GetData", { userID: mainModel.userID() != null ? mainModel.userID() : 1 });
+}
+
+function endGetData(result) {
+    mainModel.trades([]);
+    mainModel.transfers([]);
+    mainModel.holdings([]);
+    mainModel.creations([]);
+    mainModel.buys([]);
+
+    mainModel.users(result.Users);
+    mainModel.wallets(result.Wallets);
+    mainModel.coins(result.Coins);
+    mainModel.buys(result.Buys);
+    mainModel.creations(result.Creations);
+    mainModel.transfers(result.Transfers);
+    mainModel.trades(result.Trades);
+    mainModel.holdings(result.Holdings);
+    mainModel.hasManualHoldings(result.HasManualHoldings);
+    if (!mainModel.isInitialized()) {
+        mainModel.isInitialized(true);
+    }
+}
+
+function beginGetCoinValues() {
+    xhr.callService(endGetCoinValues, "Home", "GetCoinValues", {});
+}
+
+function endGetCoinValues(coinValues) {
+    mainModel.coinValues(coinValues);
+}
