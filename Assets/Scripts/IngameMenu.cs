@@ -5,13 +5,19 @@ using UnityEngine.Rendering;
 
 public class IngameMenu : MonoBehaviour {
 
-    public GameObject Group_Surveillance;
+    private GameObject UI_Surveillance;
+    private GameObject UI_Minecraft;
 
     private Scene CurrentScene;
 
     void Start() {
         CurrentScene = SceneManager.GetActiveScene();
-        Group_Surveillance.SetActive(CurrentScene.name == "surveillance");
+
+        UI_Surveillance = transform.Find("UI_Surveillance").gameObject;
+        UI_Minecraft = transform.Find("UI_Minecraft").gameObject;
+
+        UI_Surveillance.SetActive(CurrentScene.name == "surveillance");
+        UI_Minecraft.SetActive(CurrentScene.name == "minecraft");
     }
 
     void Update() {
