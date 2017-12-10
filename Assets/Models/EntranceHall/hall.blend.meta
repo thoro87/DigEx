@@ -18,6 +18,13 @@ ModelImporter:
     100020: Right
     100022: Floor
     100024: Walls
+    100026: Floor_001
+    100028: Hall_Ceiling
+    100030: Hall_Floor
+    100032: Hall_Walls
+    100034: Hallway_Ceiling
+    100036: Hallway_Floor
+    100038: Hallway_Walls
     400000: //RootNode
     400002: Ground
     400004: Wall_01
@@ -31,6 +38,13 @@ ModelImporter:
     400020: Right
     400022: Floor
     400024: Walls
+    400026: Floor_001
+    400028: Hall_Ceiling
+    400030: Hall_Floor
+    400032: Hall_Walls
+    400034: Hallway_Ceiling
+    400036: Hallway_Floor
+    400038: Hallway_Walls
     2300000: //RootNode
     2300002: Ground
     2300004: Wall_01
@@ -44,6 +58,13 @@ ModelImporter:
     2300020: Right
     2300022: Floor
     2300024: Walls
+    2300026: Floor_001
+    2300028: Hall_Ceiling
+    2300030: Hall_Floor
+    2300032: Hall_Walls
+    2300034: Hallway_Ceiling
+    2300036: Hallway_Floor
+    2300038: Hallway_Walls
     3300000: //RootNode
     3300002: Ground
     3300004: Wall_01
@@ -57,6 +78,13 @@ ModelImporter:
     3300020: Right
     3300022: Floor
     3300024: Walls
+    3300026: Floor_001
+    3300028: Hall_Ceiling
+    3300030: Hall_Floor
+    3300032: Hall_Walls
+    3300034: Hallway_Ceiling
+    3300036: Hallway_Floor
+    3300038: Hallway_Walls
     4300000: Ground
     4300002: Wall_01_001
     4300004: Wall_01
@@ -69,6 +97,13 @@ ModelImporter:
     4300018: Left
     4300020: Floor
     4300022: Walls
+    4300024: Floor_001
+    4300026: Hallway_Ceiling
+    4300028: Hall_Walls
+    4300030: Hallway_Floor
+    4300032: Hall_Ceiling
+    4300034: Hall_Floor
+    4300036: Hallway_Walls
     7400000: Default Take
     9500000: //RootNode
   materials:
